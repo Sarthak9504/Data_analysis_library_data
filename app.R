@@ -24,11 +24,13 @@ data_analysis_page <- div(
           "Caetgory wise transactions",
           "Monthly transactions",
           "Frequency of non zero fines",
-          "Monthly Transactions for branch"
+          "Monthly Transactions for branch",
+          "Department wise top books"
         ),
       selected = "Percent White"
     ),
   uiOutput("SecondSelect"),
+  uiOutput("SliderInput"),
   actionButton("save_btn","Save"),
   div(
     class = "card",
@@ -60,9 +62,9 @@ ui <- fluidPage(
   router$ui
 )
 
-source("C:/Users/sarth/OneDrive/Documents/SY-SEM2/DS/DS_dashboard/circ_preprocessing.R")
-source("C:/Users/sarth/OneDrive/Documents/SY-SEM2/DS/DS_dashboard/borr_preprocessing.R")
-source("C:/Users/sarth/OneDrive/Documents/SY-SEM2/DS/DS_dashboard/data_visualization.R")
+source("C:/Users/sarth/OneDrive/Documents/SY-SEM2/DS/DS_dashboard/Data_analysis_library_data/circ_preprocessing.R")
+source("C:/Users/sarth/OneDrive/Documents/SY-SEM2/DS/DS_dashboard/Data_analysis_library_data/borr_preprocessing.R")
+source("C:/Users/sarth/OneDrive/Documents/SY-SEM2/DS/DS_dashboard/Data_analysis_library_data/data_visualization.R")
 
 server <- function(input, output, session) {
   router$server(input, output, session)
@@ -120,7 +122,7 @@ server <- function(input, output, session) {
     if (route == "#!/contact") {
       borr_df_processed(filter(borr_df_processed()))
       output$SecondSelect <- renderUI({
-        if (input$var == "Monthly Transactions for branch") {
+        if (input$var == "Monthly Transactions for branch" || input$var == "Department wise top books") {
           selectInput(
             "secondVar",
             label = "Choose a branch",
@@ -141,14 +143,28 @@ server <- function(input, output, session) {
         }
       })
       
+      output$SliderInput <- renderUI({
+        if (input$var == "Department wise top books"){
+          sliderInput("integer", "Integer:",
+                      min = 5, max = 20,
+                      value = 10)
+        }
+      })
+      
       observeEvent(input$save_btn, {
         print("inside button")
         selected_var <- input$var
         plot <- NULL
         if (!is.null(input$secondVar)){
-          selected_var2 <- input$secondVar
-          print(selected_var2)
-          plot <- branch_month(borr_df_processed(),selected_var2)
+          if(!is.null(input$integer)){
+            selected_var2 <- input$secondVar
+            slider_var <- input$integer
+            plot <- branch_book(borr_df_processed(),selected_var2,slider_var)
+          } else {
+            selected_var2 <- input$secondVar
+            print(selected_var2)
+            plot <- branch_month(borr_df_processed(),selected_var2)
+          }
         }
         else{
           if(selected_var == "Branch wise transactions") {

@@ -211,3 +211,45 @@ branch_month <- function(df,branch){
   
   return(bar_plot)
 }
+
+
+branch_book <- function(df,branch,head) {
+  library(dplyr)
+  library(ggplot2)
+  
+  selected_department <- branch
+  
+  book_dept_freq <- df[df$Branch == selected_department,] %>%
+    group_by(CardTitle) %>%
+    summarise(Frequency = n()) %>%
+    arrange(desc(Frequency)) %>%
+    head(head)
+  
+  color_palette <- rainbow(length(book_dept_freq$CardTitle))
+  
+  color_index <- setNames(color_palette, book_dept_freq$CardTitle)
+  
+  bar_plot <- ggplot(book_dept_freq, aes(x=CardTitle, y=Frequency, fill=CardTitle)) +
+    geom_bar(stat="identity") +
+    theme_minimal() +
+    theme(plot.background = element_rect(fill = "white"),
+          plot.margin = margin(5, 40, 5, 40),
+          panel.background = element_rect(fill = "white"),
+          axis.text.x = element_blank(),
+          axis.title.x = element_blank(),
+          legend.position = "right") +
+    scale_fill_manual(values = color_index) +
+    guides(fill=guide_legend(title="Books"))
+  bar_plot <- bar_plot + labs(title = paste("Top ", head ," books for ", branch ," department "))
+  
+  return(bar_plot)
+}
+
+
+
+
+
+
+
+
+
