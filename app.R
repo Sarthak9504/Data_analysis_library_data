@@ -13,7 +13,6 @@ home_page <- div(
 
 data_analysis_page <- div(
   titlePanel("Data analysis"),
-  "Shiny is available on CRAN, so you can install it in the usual way from your R console:",
     selectInput(
       "var",
       label = "Choose an option",
@@ -26,20 +25,26 @@ data_analysis_page <- div(
           "Frequency of non zero fines",
           "Per Capita Transactions for each Branch",
           "Monthly Transactions for branch",
-          "Department wise top books"
+          "Department wise top books",
+          "Yearly Average Transactions Branch wise"
         ),
       selected = "Percent White"
     ),
+  selectInput(
+    "plot_choice",
+    label = "Choose an option",
+    choices = 
+      list(
+        "Bar plot",
+        "Pie chart"
+      ),
+  ),
   uiOutput("SecondSelect"),
   uiOutput("select"),
   uiOutput("SliderInput"),
   actionButton("save_btn","Save"),
   div(
     class = "card",
-    div(
-      class = "card-header",
-      "Introducing Shiny"
-    ),
     div(
       class = "card-body",
       plotOutput("plot")
@@ -178,39 +183,82 @@ server <- function(input, output, session) {
         print("inside button")
         selected_var <- input$var
         plot <- NULL
-        if (!is.null(input$secondVar)){
-          if(!is.null(input$integer)){
-            selected_var2 <- input$secondVar
-            slider_var <- input$integer
-            plot <- branch_book(borr_df_processed(),selected_var2,slider_var)
-          } else {
-            selected_var2 <- input$secondVar
-            print(selected_var2)
-            plot <- branch_month(borr_df_processed(),selected_var2)
+        if(input$var != "Yearly Average Transactions Branch wise"){
+          if(input$plot_choice == "Bar plot"){
+            if (!is.null(input$secondVar)){
+              if(!is.null(input$integer)){
+                selected_var2 <- input$secondVar
+                slider_var <- input$integer
+                plot <- branch_book(borr_df_processed(),selected_var2,slider_var)
+              } else {
+                selected_var2 <- input$secondVar
+                print(selected_var2)
+                plot <- branch_month(borr_df_processed(),selected_var2)
+              }
+            }
+            else if(selected_var == "Per Capita Transactions for each Branch"){
+              if(!is.null(input$var2)){
+                next_var <- input$var2
+                plot <- avg_tran(borr_df_processed(),next_var)
+              }
+            }
+            else{
+              if(selected_var == "Branch wise transactions") {
+                plot <- tran_branch(borr_df_processed())
+              }
+              else if(selected_var == "Type wise transactions") {
+                plot <- tran_type(borr_df_processed())
+              }
+              else if(selected_var == "Caetgory wise transactions") {
+                plot <- tran_category(borr_df_processed())
+              }
+              else if(selected_var == "Monthly transactions") {
+                plot <- freq_month(borr_df_processed())
+              }
+              else if(selected_var == "Frequency of non zero fines") {
+                plot <- zero_fine_branch(borr_df_processed())
+              }
+            }
+          }
+          else if(input$plot_choice == "Pie chart"){
+            if (!is.null(input$secondVar)){
+              if(!is.null(input$integer)){
+                selected_var2 <- input$secondVar
+                slider_var <- input$integer
+                plot <- branch_book_pie(borr_df_processed(),selected_var2,slider_var)
+              } else {
+                selected_var2 <- input$secondVar
+                print(selected_var2)
+                plot <- branch_month_pie(borr_df_processed(),selected_var2)
+              }
+            }
+            else if(selected_var == "Per Capita Transactions for each Branch"){
+              if(!is.null(input$var2)){
+                next_var <- input$var2
+                plot <- avg_tran_pie(borr_df_processed(),next_var)
+              }
+            }
+            else{
+              if(selected_var == "Branch wise transactions") {
+                plot <- tran_branch_pie(borr_df_processed())
+              }
+              else if(selected_var == "Type wise transactions") {
+                plot <- tran_type_pie(borr_df_processed())
+              }
+              else if(selected_var == "Caetgory wise transactions") {
+                plot <- tran_category_pie(borr_df_processed())
+              }
+              else if(selected_var == "Monthly transactions") {
+                plot <- freq_month_pie(borr_df_processed())
+              }
+              else if(selected_var == "Frequency of non zero fines") {
+                plot <- zero_fine_branch_pie(borr_df_processed())
+              }
+            }
           }
         }
-        else if(selected_var == "Per Capita Transactions for each Branch"){
-          if(!is.null(input$var2)){
-            next_var <- input$var2
-            plot <- avg_tran(borr_df_processed(),next_var)
-          }
-        }
-        else{
-          if(selected_var == "Branch wise transactions") {
-            plot <- tran_branch(borr_df_processed())
-          }
-          else if(selected_var == "Type wise transactions") {
-            plot <- tran_type(borr_df_processed())
-          }
-          else if(selected_var == "Caetgory wise transactions") {
-            plot <- tran_category(borr_df_processed())
-          }
-          else if(selected_var == "Monthly transactions") {
-            plot <- freq_month(borr_df_processed())
-          }
-          else if(selected_var == "Frequency of non zero fines") {
-            plot <- zero_fine_branch(borr_df_processed())
-          }
+        else if(input$var == "Yearly Average Transactions Branch wise"){
+          plot <- avg_branch_line(borr_df_processed())
         }
         
         output$plot <- renderPlot({
@@ -224,7 +272,7 @@ server <- function(input, output, session) {
           png(outfile, 
               width = 200*8, 
               height = 200*8,
-              res = 100*8)
+              res = 500*8)
           print(plot)
           dev.off()
 
