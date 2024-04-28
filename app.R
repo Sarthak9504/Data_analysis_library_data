@@ -24,12 +24,14 @@ data_analysis_page <- div(
           "Caetgory wise transactions",
           "Monthly transactions",
           "Frequency of non zero fines",
+          "Per Capita Transactions for each Branch",
           "Monthly Transactions for branch",
           "Department wise top books"
         ),
       selected = "Percent White"
     ),
   uiOutput("SecondSelect"),
+  uiOutput("select"),
   uiOutput("SliderInput"),
   actionButton("save_btn","Save"),
   div(
@@ -143,6 +145,27 @@ server <- function(input, output, session) {
         }
       })
       
+      output$select <- renderUI({
+        if(input$var == "Per Capita Transactions for each Branch"){
+          selectInput(
+            "var2",
+            label = "Choose a year",
+            choices = list("2015",
+                           "2016",
+                           "2017",
+                           "2018",
+                           "2019",
+                           "2020",
+                           "2021",
+                           "2022",
+                           "2023"),
+            selected = "2017"
+          )
+        } else {
+          NULL
+        }
+      })
+      
       output$SliderInput <- renderUI({
         if (input$var == "Department wise top books"){
           sliderInput("integer", "Integer:",
@@ -164,6 +187,12 @@ server <- function(input, output, session) {
             selected_var2 <- input$secondVar
             print(selected_var2)
             plot <- branch_month(borr_df_processed(),selected_var2)
+          }
+        }
+        else if(selected_var == "Per Capita Transactions for each Branch"){
+          if(!is.null(input$var2)){
+            next_var <- input$var2
+            plot <- avg_tran(borr_df_processed(),next_var)
           }
         }
         else{

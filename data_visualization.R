@@ -6,6 +6,7 @@ filter <- function(df) {
   
   filtered_df <- df[df$Branch %in% values_to_keep, ]
   
+  setwd("C:/Users/sarth/OneDrive/Documents/SY-SEM2/DS")
   return(filtered_df)
 }
 
@@ -32,7 +33,7 @@ tran_branch <- function(df) {
     guides(fill=guide_legend(title="Branch"))
   
   bar_plot <- bar_plot + labs(title = "Frequency of Transactions Branch Wise")
-  
+  ggsave("tran_branch.png", plot = bar_plot, width = 8, height = 6, units = "in", dpi = 300)
   return(bar_plot)
 }
 
@@ -58,6 +59,7 @@ tran_type <- function(df) {
     guides(fill=guide_legend(title="TransactionType"))
   
   bar_plot <- bar_plot + labs(title = "Frequency of Transactions Type Wise")
+  ggsave("tran_type.png", plot = bar_plot, width = 8, height = 6, units = "in", dpi = 300)
   
   return(bar_plot)
 }
@@ -84,6 +86,8 @@ freq_tran <- function(df){
           panel.background = element_rect(fill = "white"),
           axis.text.x = element_text(angle = 45, hjust = 1))
   
+  ggsave("Most_freq.png", plot = most_frequent_plot, width = 8, height = 6, units = "in", dpi = 300)
+  
   return(most_frequent_plot)
 }
 
@@ -109,6 +113,9 @@ tran_category <- function(df) {
     scale_fill_manual(values = color_index) +
     guides(fill=guide_legend(title="Category"))
   bar_plot <- bar_plot + labs(title = "Frequency of Transactions category wise", x = "Branch", y = "Frequency")
+  
+  ggsave("tran_category.png", plot = bar_plot, width = 8, height = 6, units = "in", dpi = 300)
+  
   return(bar_plot)
 }
 
@@ -139,6 +146,7 @@ freq_month <- function(df){
     scale_fill_manual(values = color_index) +
     guides(fill=guide_legend(title="Month"))
   bar_plot <- bar_plot + labs(title = "Frequency of Transactions Month Wise")
+  ggsave("freq_month.png", plot = bar_plot, width = 8, height = 6, units = "in", dpi = 300)
   
   return(bar_plot)
 }
@@ -174,6 +182,48 @@ zero_fine_branch <- function(df){
     guides(fill=guide_legend(title="Branch"))
   
   bar_plot <- bar_plot + labs(title = "Frequency of Non Zero fines Branch Wise")
+  ggsave("zero_fine_branch.png", plot = bar_plot, width = 8, height = 6, units = "in", dpi = 300)
+  
+  return(bar_plot)
+}
+
+avg_tran <- function(df,year){
+  library(ggplot2)
+  library(dplyr)
+  
+  new_df <- df[substr(trimws(df$EntryDateTime), 
+                               nchar(trimws(df$EntryDateTime)) - 3, nchar(trimws(df$EntryDateTime))) == year, ]
+
+  value_counts <- as.data.frame(table(new_df$Branch))
+  #value_counts <- value_counts[value_counts$Freq>500,]
+  colnames(value_counts)[1] <- "Branch"
+  
+  value_counts$avg <- sapply(value_counts$Branch, function(branch) length(unique(new_df$LastName[new_df$Branch == branch])))
+  
+  value_counts$avg <- (value_counts$Freq %/% (value_counts$avg))
+  value_counts$avg <- value_counts$avg %/% 2
+  
+  value_counts <- subset(value_counts,Branch != "LIB")
+  
+  color_palette <- rainbow(length(value_counts$Branch))
+  
+  color_index <- setNames(color_palette, value_counts$Branch)
+  
+  bar_plot <- ggplot(value_counts, aes(x=Branch, y=avg, fill=Branch)) +
+    geom_bar(stat="identity") +
+    theme_minimal() +
+    theme(plot.background = element_rect(fill = "white"),  # Set plot background color
+          plot.margin = margin(20, 20, 20, 20),  # Adjust plot margins
+          panel.background = element_rect(fill = "white"),
+          axis.text.x = element_blank(),
+          axis.title.x = element_blank(),
+          legend.position = "right") +
+    scale_fill_manual(values = color_index) +
+    guides(fill=guide_legend(title="Branch"))
+  
+  bar_plot <- bar_plot + labs(title = paste("Frequency of Average Transactions Branch Wise for year",year))
+  ggsave(paste("avg_tran_branch",year,".png"), plot = bar_plot, width = 8, height = 6, units = "in", dpi = 300)
+  
   return(bar_plot)
 }
 
@@ -208,6 +258,7 @@ branch_month <- function(df,branch){
     scale_fill_manual(values = color_index) +
     guides(fill=guide_legend(title="Month"))
   bar_plot <- bar_plot + labs(title = title_text)
+  ggsave("branch_month.png", plot = bar_plot, width = 8, height = 6, units = "in", dpi = 300)
   
   return(bar_plot)
 }
@@ -241,6 +292,7 @@ branch_book <- function(df,branch,head) {
     scale_fill_manual(values = color_index) +
     guides(fill=guide_legend(title="Books"))
   bar_plot <- bar_plot + labs(title = paste("Top ", head ," books for ", branch ," department "))
+  ggsave("branch_book.png", plot = bar_plot, width = 8, height = 6, units = "in", dpi = 300)
   
   return(bar_plot)
 }
